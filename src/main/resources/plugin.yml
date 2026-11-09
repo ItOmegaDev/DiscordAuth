@@ -1,0 +1,9 @@
+name: DiscordAuth
+version: 2.0.0
+main: net.omegasmp.discordauth.paper.DiscordAuthPaper
+api-version: '1.21'
+author: Omega
+description: Unified Discord + password authentication (Paper dialog UI or Velocity limbo chat).
+website: https://t.me/ItOmega
+load: POSTWORLD
+softdepend: [PlaceholderAPI, TAB, ViaVersion]

@@ -1,0 +1,17 @@
+{
+  "id": "discord-auth",
+  "name": "DiscordAuth",
+  "version": "2.0.0",
+  "description": "Unified Discord + password authentication for Velocity and Paper",
+  "url": "https://omegasmp.pp.ua",
+  "authors": [
+    "OmegaSMP"
+  ],
+  "dependencies": [
+    {
+      "id": "limboapi",
+      "optional": true
+    }
+  ],
+  "main": "net.omegasmp.discordauth.velocity.DiscordAuthVelocity"
+}

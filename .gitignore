@@ -1,0 +1,11 @@
+# Runtime data — never commit
+config.json
+secrets.json
+accounts.json
+links.json
+bans.json
+forwarding.secret
+logs/
+target/
+libs/*.jar
+*.log
