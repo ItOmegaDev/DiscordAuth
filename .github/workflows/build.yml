@@ -16,14 +16,12 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: Build
-        run: |
-          echo "Note: build.sh requires local dependency jars."
-          echo "For CI, download dependencies or use Maven."
-          ls -la
+          cache: 'maven'
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: DiscordAuth-jar
           path: target/*.jar
-          if-no-files-found: ignore
+          if-no-files-found: error
