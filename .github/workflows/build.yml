@@ -1,0 +1,29 @@
+name: Build DiscordAuth
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Build
+        run: |
+          echo "Note: build.sh requires local dependency jars."
+          echo "For CI, download dependencies or use Maven."
+          ls -la
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DiscordAuth-jar
+          path: target/*.jar
+          if-no-files-found: ignore
