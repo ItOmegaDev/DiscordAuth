@@ -236,5 +236,3 @@ Same placeholders with `%discordauth_*%` syntax.
 This project is provided as-is for the OmegaSMP community.
 
 **Contact:** [@ItOmega](https://t.me/ItOmega)
-EOF
-echo "written"
