@@ -2,7 +2,7 @@
 # Build the unified DiscordAuth jar (Velocity + Paper) fully offline.
 #
 # Everything needed is already on this machine:
-#   - Velocity API + Adventure        ../Velocity26/velocity.jar
+#   - Velocity API + Adventure        ../../servers/Velocity26/velocity.jar
 #   - LimboAPI                        libs/limboapi-1.2.0.jar
 #   - Paper/Purpur API 26.3           ../../servers/TESTrust/libraries/...
 #   - PlaceholderAPI                  ../discord-auth-bridge/libs/placeholderapi-*.jar
@@ -18,7 +18,7 @@ JAR_NAME="DiscordAuth-${VERSION}.jar"
 BASE="$(pwd)"
 
 DEPS_JAR="${DEPS_JAR:-$BASE/../discord-auth/target/discord-auth-1.7.6.jar}"
-VELOCITY_JAR="${VELOCITY_JAR:-$BASE/../../Velocity26/velocity.jar}"
+VELOCITY_JAR="${VELOCITY_JAR:-$BASE/../../servers/Velocity26/velocity.jar}"
 LIMBO_JAR="${LIMBO_JAR:-$(ls "$BASE"/libs/limboapi-*.jar 2>/dev/null | head -1)}"
 PAPI_JAR="${PAPI_JAR:-$(ls "$BASE"/../discord-auth-bridge/libs/placeholderapi-*.jar 2>/dev/null | head -1)}"
 PAPER_API="${PAPER_API:-$(find "$BASE"/../../../servers -name 'purpur-api-*.jar' 2>/dev/null | head -1)}"
