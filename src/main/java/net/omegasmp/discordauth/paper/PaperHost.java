@@ -223,7 +223,8 @@ public final class PaperHost implements AuthHost {
       return;
     }
     try {
-      player.sendMessage(message);
+      Component prefixed = Text.component(this.config.messages.prefix + " §7- ").append(message);
+      player.sendMessage(prefixed);
     } catch (Throwable throwable) {
       this.logger.debug("Unable to send a message to {}", session.getUsername(), throwable);
     }

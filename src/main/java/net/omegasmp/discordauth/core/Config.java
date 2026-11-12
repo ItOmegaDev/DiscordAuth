@@ -149,6 +149,7 @@ public class Config {
   }
 
   public static class Messages {
+    public String prefix = "&aOmegaSMP";
     // All message fields with defaults (same as before)
     public String title = "&#39D353&lACCOUNT VERIFICATION";
     public String subtitle = "&8Code: &#39D353&l%code%";

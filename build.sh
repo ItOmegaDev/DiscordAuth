@@ -18,7 +18,7 @@ JAR_NAME="DiscordAuth-${VERSION}.jar"
 BASE="$(pwd)"
 
 DEPS_JAR="${DEPS_JAR:-$BASE/../discord-auth/target/discord-auth-1.7.6.jar}"
-VELOCITY_JAR="${VELOCITY_JAR:-$BASE/../../servers/Velocity26/velocity.jar}"
+VELOCITY_JAR="${VELOCITY_JAR:-$BASE/../../../servers/Velocity26/velocity.jar}"
 LIMBO_JAR="${LIMBO_JAR:-$(ls "$BASE"/libs/limboapi-*.jar 2>/dev/null | head -1)}"
 PAPI_JAR="${PAPI_JAR:-$(ls "$BASE"/../discord-auth-bridge/libs/placeholderapi-*.jar 2>/dev/null | head -1)}"
 PAPER_API="${PAPER_API:-$(find "$BASE"/../../../servers -name 'purpur-api-*.jar' 2>/dev/null | head -1)}"
