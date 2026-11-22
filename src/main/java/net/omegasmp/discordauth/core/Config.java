@@ -109,8 +109,8 @@ public class Config {
   public static class Tab {
     public boolean enabled = true;
     public String nameSource = "nickname";
-    public String format = "&#39D353%player%\n&8&o%discord%";
-    public String hover = "&8Minecraft&7: &f%player%\n&#39D353Discord&7: &f%discord%\n&8Discord ID&7: &f%discord_id%";
+    public String format = "&#7C3AED%player%\n&8&o%discord%";
+    public String hover = "&8Minecraft&7: &f%player%\n&#7C3AEDDiscord&7: &f%discord%\n&8Discord ID&7: &f%discord_id%";
     public String unknownDiscord = "unknown";
     public boolean stripUnsupported = true;
     public boolean skipWhenTabPluginInstalled = true;
@@ -149,39 +149,39 @@ public class Config {
   }
 
   public static class Messages {
-    public String prefix = "&aOmegaSMP";
+    public String prefix = "&aOmegaMC";
     // All message fields with defaults (same as before)
-    public String title = "&#39D353&lACCOUNT VERIFICATION";
-    public String subtitle = "&8Code: &#39D353&l%code%";
-    public String chat = "&8&m                                                  \n&#39D353&lVerify your account\n&8Step 1: &7Join our Discord — %discord_link%\n&8Step 2: &7Type &#39D353/verify %copy_code%";
-    public String actionBar = "&8Code: &#39D353&l%code% &8— &7/verify %code% &8in Discord";
-    public String bossBarDiscord = "&#39D353&lDISCORD &8— &f%time% &7left";
-    public String bossBarPassword = "&#39D353&lPASSWORD &8— &f%time% &7left";
-    public String linkText = "&#39D353&l[ OPEN DISCORD ]";
-    public String linkHover = "&#39D353Click to open the Discord server\n&7Then type &f/verify <code>";
-    public String linkTextFallback = "&#39D353Discord server &fProject OmegaSMP";
-    public String codeText = "&#39D353&l%code%";
-    public String codeHover = "&#39D353Click to copy the code";
-    public String verified = "&#39D353&l✔ &7Account linked! Sending you to the server…";
-    public String transferKick = "&#39D353&l✔ &7Account linked!\n&8The transfer failed — reconnect to the server and you will join the game directly.";
-    public String timeoutKick = "&4&lVerification timed out\n&7Join again to get a new code.\n&8Discord: &#39D353%discord_link%";
+    public String title = "&#7C3AED&lACCOUNT VERIFICATION";
+    public String subtitle = "&8Code: &#7C3AED&l%code%";
+    public String chat = "&8&m                                                  \n&#7C3AED&lVerify your account\n&8Step 1: &7Join our Discord — %discord_link%\n&8Step 2: &7Type &#7C3AED/verify %copy_code%";
+    public String actionBar = "&8Code: &#7C3AED&l%code% &8— &7/verify %code% &8in Discord";
+    public String bossBarDiscord = "&#7C3AED&lDISCORD &8— &f%time% &7left";
+    public String bossBarPassword = "&#7C3AED&lPASSWORD &8— &f%time% &7left";
+    public String linkText = "&#7C3AED&l[ OPEN DISCORD ]";
+    public String linkHover = "&#7C3AEDClick to open the Discord server\n&7Then type &f/verify <code>";
+    public String linkTextFallback = "&#7C3AEDDiscord server &fProject OmegaMC";
+    public String codeText = "&#7C3AED&l%code%";
+    public String codeHover = "&#7C3AEDClick to copy the code";
+    public String verified = "&#7C3AED&l✔ &7Account linked! Sending you to the server…";
+    public String transferKick = "&#7C3AED&l✔ &7Account linked!\n&8The transfer failed — reconnect to the server and you will join the game directly.";
+    public String timeoutKick = "&4&lVerification timed out\n&7Join again to get a new code.\n&8Discord: &#7C3AED%discord_link%";
     public String passwordTimeoutKick = "&4&lTimed out\n&7Join again and enter your password: &f/%login_command% <password>";
     public String chatIgnored = "&cOnly &f/%login_command% <password>&c and &f/%register_command% <password> <password>&c work in chat. Verify the code in Discord: &f/verify <code>&c.";
     public String discordSuccess = "✅ Account **%player%** has been linked! Sending you to the server…";
     public String discordSuccessNeedsPassword = "✅ Discord account linked to **%player%**! Return to the game and finish signing in with your password.";
     public String discordAlreadyLinked = "ℹ️ Your Discord is already linked to the account **%player%**.";
-    public String passwordRegister = "&8&m                                                  \n&#39D353&lCREATE A PASSWORD\n&8Choose a password (%min%-%max% characters) and type:\n&f/%register_command% <password> <password>";
-    public String passwordLogin = "&8&m                                                  \n&#39D353&lSIGN IN\n&8Type your password:\n&f/%login_command% <password>";
+    public String passwordRegister = "&8&m                                                  \n&#7C3AED&lCREATE A PASSWORD\n&8Choose a password (%min%-%max% characters) and type:\n&f/%register_command% <password> <password>";
+    public String passwordLogin = "&8&m                                                  \n&#7C3AED&lSIGN IN\n&8Type your password:\n&f/%login_command% <password>";
     public String passwordHint = "&8Only &f/%login_command% <password> &8and &f/%register_command% <password> <password> &8are available while signing in.";
-    public String discordLinkedInGame = "&#39D353&l✔ &7Discord linked!";
-    public String passwordSuccess = "&#39D353&l✔ &7Signed in! Sending you to the server…";
-    public String passwordAccepted = "&#39D353&l✔ &7Password correct!";
-    public String passwordCreated = "&#39D353&l✔ &7Password created!";
-    public String passwordChanged = "&#39D353&l✔ &7Password changed.";
+    public String discordLinkedInGame = "&#7C3AED&l✔ &7Discord linked!";
+    public String passwordSuccess = "&#7C3AED&l✔ &7Signed in! Sending you to the server…";
+    public String passwordAccepted = "&#7C3AED&l✔ &7Password correct!";
+    public String passwordCreated = "&#7C3AED&l✔ &7Password created!";
+    public String passwordChanged = "&#7C3AED&l✔ &7Password changed.";
     public String passwordWrong = "&c✘ Wrong password&8. Try again: &f/%login_command% <password>&8.";
     public String passwordBlocked = "&c⏳ Too many failed attempts&8. Try again in &f%seconds% s&8.";
     public String passwordUsage = "&cUsage: &f/%register_command% <password> <password> &cor &f/%login_command% <password>&8.";
-    public String passwordTitle = "&#39D353&lAUTHORIZATION";
+    public String passwordTitle = "&#7C3AED&lAUTHORIZATION";
     public String passwordSubtitle = "&7Enter your password in chat";
     public String passwordActionBar = "&8/%login_command% <password> &7or &8/%register_command% <password> <password>";
     public String passwordMismatch = "&cPasswords do not match&8.";
@@ -212,7 +212,7 @@ public class Config {
     public String discordAdminOnly = "❌ This command is available to administrators only.";
     public String discordTargetNotLinked = "❌ The player **%player%** is not linked to any Discord account.";
     public String discordResetDone = "✅ Password for **%player%** has been changed by an administrator.";
-    public String passwordChangedDiscord = "&#39D353&l✔ &7Password changed via Discord&8.";
+    public String passwordChangedDiscord = "&#7C3AED&l✔ &7Password changed via Discord&8.";
     public String banKickMessage = "&c&lYOU ARE BANNED\n&7Reason: &f%reason%";
     public String kickMessage = "&c&lKICKED\n&7Reason: &f%reason%";
     public String discordBanDone = "✅ **%player%** has been banned permanently.";
@@ -230,7 +230,7 @@ public class Config {
     public String discordAccountInfo = "**%player%** — password: %password%, linked: %linked%";
     public String discordAccountPasswordYes = "✔ set";
     public String discordAccountPasswordNo = "— not set";
-    public String discordInvite = "&#39D353&lDISCORD &8— &f%discord_link%";
+    public String discordInvite = "&#7C3AED&lDISCORD &8— &f%discord_link%";
     public String discordPasswordMismatch = "❌ Passwords do not match.";
     public String discordPasswordRule = "❌ Password must be %min%-%max% characters.";
     public String discordPasswordWrongOld = "❌ Wrong current password.";
@@ -259,7 +259,7 @@ public class Config {
     public String dialogStorageError = "&4&lAUTH UNAVAILABLE";
     public String dialogTimeout = "&4&lLogin timed out";
     public String dialogKickOnly = "&4&lLOGIN REQUIRED";
-    public String dialogAuthAvailable = "&#39D353&l✔ &7Signed in!";
+    public String dialogAuthAvailable = "&#7C3AED&l✔ &7Signed in!";
   }
 
   // ---- Load / Save ----
@@ -430,8 +430,8 @@ public class Config {
     if (this.auth.transferFallbackAddress == null || this.auth.transferFallbackAddress.isBlank()) this.auth.transferFallbackAddress = "127.0.0.1:25565";
     if (this.limbo.dimension == null || this.limbo.dimension.isBlank()) this.limbo.dimension = "THE_END";
     if (this.tab.nameSource == null || this.tab.nameSource.isBlank()) this.tab.nameSource = "nickname";
-    if (this.tab.format == null) this.tab.format = "&#39D353%player%\n&8&o%discord%";
-    if (this.tab.hover == null) this.tab.hover = "&8Minecraft&7: &f%player%\n&#39D353Discord&7: &f%discord%\n&8Discord ID&7: &f%discord_id%";
+    if (this.tab.format == null) this.tab.format = "&#7C3AED%player%\n&8&o%discord%";
+    if (this.tab.hover == null) this.tab.hover = "&8Minecraft&7: &f%player%\n&#7C3AEDDiscord&7: &f%discord%\n&8Discord ID&7: &f%discord_id%";
     if (this.tab.unknownDiscord == null) this.tab.unknownDiscord = "unknown";
     if (this.bridge.channel == null || this.bridge.channel.isBlank()) this.bridge.channel = "discordauth:identity";
     if (this.bridge.placeholderPrefix == null || this.bridge.placeholderPrefix.isBlank()) this.bridge.placeholderPrefix = "discordauth";

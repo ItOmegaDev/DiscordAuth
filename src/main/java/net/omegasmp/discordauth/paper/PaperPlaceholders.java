@@ -34,7 +34,7 @@ public final class PaperPlaceholders extends PlaceholderExpansion {
 
   @Override
   public String getAuthor() {
-    return "OmegaSMP";
+    return "OmegaMC";
   }
 
   @Override

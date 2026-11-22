@@ -63,7 +63,7 @@ import org.slf4j.Logger;
     name = "DiscordAuth",
     version = "2.0.0",
     description = "Unified Discord + password authentication for Velocity and Paper",
-    authors = {"OmegaSMP"},
+    authors = {"OmegaMC"},
     dependencies = {@Dependency(id = "limboapi", optional = true)}
 )
 public class DiscordAuthVelocity {

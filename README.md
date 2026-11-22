@@ -121,7 +121,7 @@ password:
 tab:
   enabled: true
   nameSource: nickname   # nickname, username, or global
-  format: "&#39D353%player%\n&8&o%discord%"
+  format: "&#7C3AED%player%\n&8&o%discord%"
   hover: "&8Minecraft&7: &f%player%"
   stripUnsupported: true
   skipWhenTabPluginInstalled: true
@@ -233,6 +233,6 @@ Same placeholders with `%discordauth_*%` syntax.
 
 ## 📄 License
 
-This project is provided as-is for the OmegaSMP community.
+This project is provided as-is for the OmegaMC community.
 
 **Contact:** [@ItOmega](https://t.me/ItOmega)
