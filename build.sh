@@ -5,11 +5,12 @@
 #   - Velocity API + Adventure        ../../servers/Velocity26/velocity.jar
 #   - LimboAPI                        libs/limboapi-1.2.0.jar
 #   - Paper/Purpur API 26.3           ../../servers/TESTrust/libraries/...
-#   - PlaceholderAPI                  ../discord-auth-bridge/libs/placeholderapi-*.jar
-#   - JDA + OkHttp + Kotlin + Gson    old shaded jar ../discord/discord-auth/target/discord-auth-1.7.6.jar
+#   - PlaceholderAPI                  servers/**/plugins/PlaceholderAPI-*.jar (any local server)
+#   - JDA + OkHttp + Kotlin + Gson    libs/deps-1.7.6.jar (third-party libs only)
 #
-# The old shaded jar is reused only for its third-party libraries: its net/omegasmp classes
-# and its velocity-plugin.json are removed before our classes are added.
+# libs/deps-1.7.6.jar is the stripped source of third-party libraries taken from the retired
+# v1 plugin. Only its net/omegasmp classes and velocity-plugin.json are removed before our
+# classes are added, so the jar is never loaded at runtime - it just supplies JDA et al.
 set -euo pipefail
 cd "$(dirname "$(readlink -f "$0")")"
 
@@ -17,10 +18,10 @@ VERSION="2.0.0"
 JAR_NAME="DiscordAuth-${VERSION}.jar"
 BASE="$(pwd)"
 
-DEPS_JAR="${DEPS_JAR:-$BASE/../discord-auth/target/discord-auth-1.7.6.jar}"
+DEPS_JAR="${DEPS_JAR:-$(ls "$BASE"/libs/deps-*.jar 2>/dev/null | head -1)}"
 VELOCITY_JAR="${VELOCITY_JAR:-$BASE/../../../servers/Velocity26/velocity.jar}"
 LIMBO_JAR="${LIMBO_JAR:-$(ls "$BASE"/libs/limboapi-*.jar 2>/dev/null | head -1)}"
-PAPI_JAR="${PAPI_JAR:-$(ls "$BASE"/../discord-auth-bridge/libs/placeholderapi-*.jar 2>/dev/null | head -1)}"
+PAPI_JAR="${PAPI_JAR:-$(find "$BASE"/../../../servers -iname 'placeholderapi*.jar' 2>/dev/null | head -1)}"
 PAPER_API="${PAPER_API:-$(find "$BASE"/../../../servers -name 'purpur-api-*.jar' 2>/dev/null | head -1)}"
 ADVENTURE_API="${ADVENTURE_API:-$(find "$BASE"/../../../servers -name 'adventure-api-*.jar' 2>/dev/null | head -1)}"
 ADVENTURE_LEGACY="${ADVENTURE_LEGACY:-$(find "$BASE"/../../../servers -name 'adventure-text-serializer-legacy-*.jar' 2>/dev/null | head -1)}"
