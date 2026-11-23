@@ -3,15 +3,18 @@ package net.omegasmp.discordauth.discord;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
@@ -25,6 +28,7 @@ import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 import net.dv8tion.jda.api.interactions.modals.ModalMapping;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.omegasmp.discordauth.core.AuthService;
 import net.omegasmp.discordauth.core.BanStore;
 import net.omegasmp.discordauth.core.Config;
@@ -98,6 +102,7 @@ public class DiscordBot extends ListenerAdapter {
       try {
         this.jda = JDABuilder.createLight(this.token)
             .setActivity(Activity.playing("Minecraft | /verify"))
+            .enableIntents(GatewayIntent.GUILD_MESSAGES)
             .addEventListeners(this)
             .build();
         this.logger.info("Connecting to Discord…");
@@ -153,6 +158,7 @@ public class DiscordBot extends ListenerAdapter {
   public void onReady(ReadyEvent event) {
     this.logger.info("Discord bot logged in as {} ({} guilds).",
         event.getJDA().getSelfUser().getName(), event.getJDA().getGuilds().size());
+    this.logger.info("Commands-only channels: {}", this.config.discord.commandsOnlyChannelIds);
     String guildId = this.config.discord.guildId;
     if (guildId == null || guildId.isBlank()) {
       this.jda.updateCommands()
@@ -170,6 +176,32 @@ public class DiscordBot extends ListenerAdapter {
         .addCommands(commands())
         .queue(list -> this.logger.info("Registered {} slash command(s) in guild {}.", list.size(), guild.getName()),
             error -> this.logger.error("Unable to register slash commands in guild {}", guildId, error));
+  }
+
+  // --------------------------------------------------------------- message guard
+
+  /**
+   * Deletes ordinary messages in channels configured as commands-only. Slash commands are
+   * interactions, not messages, so they are unaffected by this guard.
+   */
+  @Override
+  public void onMessageReceived(MessageReceivedEvent event) {
+    if (event.getAuthor().isBot() || event.isWebhookMessage()) {
+      return;
+    }
+    if (!this.config.discord.commandsOnlyChannelIds.contains(event.getChannel().getId())) {
+      return;
+    }
+    Member member = event.getMember();
+    if (member != null && member.hasPermission(Permission.MESSAGE_MANAGE)) {
+      return;
+    }
+    event.getMessage().delete().queue(null,
+        error -> this.logger.debug("Unable to delete a commands-only message: {}", error.getMessage()));
+    event.getChannel().sendMessage(
+            "❌ This channel is for commands only. Use `/verify`, `/account`, `/password` or `/unlink`.")
+        .queue(message -> message.delete().queueAfter(5, TimeUnit.SECONDS),
+            error -> this.logger.debug("Unable to send the commands-only notice: {}", error.getMessage()));
   }
 
   // --------------------------------------------------------------- slash commands

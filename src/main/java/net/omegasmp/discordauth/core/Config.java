@@ -57,6 +57,8 @@ public class Config {
     public List<String> adminUserIds = new ArrayList<>();
     public String inviteUrl = "";
     public boolean requireGuildMember = true;
+    /** Text channels where only slash commands are allowed; regular messages are deleted by the bot. */
+    public List<String> commandsOnlyChannelIds = new ArrayList<>();
     public int maxAccountsPerDiscord = 2;
     public int maxJavaAccountsPerDiscord = 1;
     public int maxBedrockAccountsPerDiscord = 1;
@@ -406,6 +408,7 @@ public class Config {
     if (this.auth.bedrockUsernamePrefixes == null) this.auth.bedrockUsernamePrefixes = new ArrayList<>(List.of("."));
     if (this.auth.verificationBypassNames == null) this.auth.verificationBypassNames = new ArrayList<>();
     if (this.discord.adminUserIds == null) this.discord.adminUserIds = new ArrayList<>();
+    if (this.discord.commandsOnlyChannelIds == null) this.discord.commandsOnlyChannelIds = new ArrayList<>();
     if (this.commands.register == null || this.commands.register.isEmpty()) this.commands.register = new ArrayList<>(List.of("register", "reg", "r"));
     if (this.commands.login == null || this.commands.login.isEmpty()) this.commands.login = new ArrayList<>(List.of("login", "l"));
     if (this.commands.admin == null || this.commands.admin.isEmpty()) this.commands.admin = new ArrayList<>(List.of("discordauth", "dauth"));
@@ -415,6 +418,7 @@ public class Config {
     this.auth.bedrockUsernamePrefixes = normalizeList(this.auth.bedrockUsernamePrefixes, ".");
     this.auth.verificationBypassNames = normalizeList(this.auth.verificationBypassNames, null);
     this.discord.adminUserIds = normalizeList(this.discord.adminUserIds, null);
+    this.discord.commandsOnlyChannelIds = normalizeList(this.discord.commandsOnlyChannelIds, null);
     this.commands.register = normalizeList(this.commands.register, "register");
     this.commands.login = normalizeList(this.commands.login, "login");
     this.commands.admin = normalizeList(this.commands.admin, "discordauth");

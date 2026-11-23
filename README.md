@@ -83,6 +83,7 @@ discord:
   adminUserIds: []       # Discord user IDs with admin access
   inviteUrl: ""          # Discord invite link
   requireGuildMember: true
+  commandsOnlyChannelIds: []   # Channels where the bot deletes everything except slash commands
   maxAccountsPerDiscord: 2
   maxJavaAccountsPerDiscord: 1
   maxBedrockAccountsPerDiscord: 1
