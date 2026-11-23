@@ -147,7 +147,8 @@ public class Config {
     public int cooldownSeconds = 60;
     public int ipMaxAttempts = 10;
     public int ipCooldownSeconds = 300;
-    public int timeoutSeconds = 60;
+    public int timeoutSeconds = 300;        // registration (brand-new account)
+    public int loginTimeoutSeconds = 60;     // returning account (login only)
   }
 
   public static class Messages {
@@ -395,6 +396,7 @@ public class Config {
     this.password.ipMaxAttempts = Math.max(0, this.password.ipMaxAttempts);
     this.password.ipCooldownSeconds = Math.max(0, this.password.ipCooldownSeconds);
     this.password.timeoutSeconds = Math.max(10, this.password.timeoutSeconds);
+    this.password.loginTimeoutSeconds = Math.max(10, this.password.loginTimeoutSeconds);
     this.auth.maxAttemptsPerUser = Math.max(1, this.auth.maxAttemptsPerUser);
     this.auth.attemptCooldownSeconds = Math.max(0, this.auth.attemptCooldownSeconds);
     this.auth.transferDelayMillis = Math.max(0, this.auth.transferDelayMillis);

@@ -117,7 +117,8 @@ password:
   cooldownSeconds: 60
   ipMaxAttempts: 10
   ipCooldownSeconds: 300
-  timeoutSeconds: 60
+  timeoutSeconds: 300      # registration (brand-new account)
+  loginTimeoutSeconds: 60  # returning account (login only)
 
 tab:
   enabled: true

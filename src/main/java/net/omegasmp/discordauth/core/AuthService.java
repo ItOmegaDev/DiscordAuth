@@ -87,7 +87,7 @@ public class AuthService {
    */
   public AuthSession createSession(UUID uuid, String username, boolean needsDiscord,
       boolean needsPassword, String address) {
-    long ttlSeconds = needsDiscord ? this.config.auth.codeTtlSeconds : this.config.password.timeoutSeconds;
+    long ttlSeconds = needsDiscord ? this.config.auth.codeTtlSeconds : this.passwordTimeoutSeconds(uuid);
     AuthSession session = new AuthSession(
         uuid,
         username,
@@ -249,11 +249,20 @@ public class AuthService {
       return;
     }
     this.sessions.removeCode(session);
-    session.extendTo(System.currentTimeMillis() + Math.max(30, this.config.password.timeoutSeconds) * 1000L);
+    session.extendTo(System.currentTimeMillis() + Math.max(30, this.passwordTimeoutSeconds(session.getUuid())) * 1000L);
     this.host.send(session, Text.build(this.config.messages.discordLinkedInGame, this.config, session));
     if (session.needsPassword()) {
       this.host.showUi(session);
     }
+  }
+
+  /**
+   * Password-step timeout depends on whether the account is being registered (5 min by default)
+   * or logged into (1 min by default). Brand-new accounts get the longer window.
+   */
+  private int passwordTimeoutSeconds(UUID uuid) {
+    boolean registered = uuid != null && this.accounts.isRegistered(uuid);
+    return registered ? this.config.password.loginTimeoutSeconds : this.config.password.timeoutSeconds;
   }
 
   /** "I've verified" from the Paper dialog: re-checks the link and continues. */
