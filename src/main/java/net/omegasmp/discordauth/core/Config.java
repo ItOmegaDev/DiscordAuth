@@ -361,7 +361,7 @@ public class Config {
     }
   }
 
-  private void applyDefaults() {
+  void applyDefaults() {
     if (this.platform == null || this.platform.isBlank()) this.platform = "auto";
     this.platform = this.platform.trim().toLowerCase(Locale.ROOT);
     if (!this.platform.equals("auto") && !this.platform.equals("velocity") && !this.platform.equals("paper")) {

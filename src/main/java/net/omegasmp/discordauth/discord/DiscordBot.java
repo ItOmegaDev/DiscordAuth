@@ -3,6 +3,8 @@ package net.omegasmp.discordauth.discord;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import net.dv8tion.jda.api.JDA;
@@ -83,6 +85,12 @@ public class DiscordBot extends ListenerAdapter {
   private final Logger logger;
   private final String token;
   private final Map<String, Attempts> attempts = new ConcurrentHashMap<>();
+  /** Last time a "commands only" notice was posted per channel, used to throttle spam. */
+  private final Map<String, Long> lastCommandsOnlyNotice = new ConcurrentHashMap<>();
+  /** Monitors the Discord gateway and alerts admins when the bot stays offline. */
+  private ScheduledExecutorService alertMonitor;
+  private volatile long offlineSince = 0L;
+  private volatile boolean offlineAlertSent = false;
   private volatile JDA jda;
 
   public DiscordBot(AuthService service, Config config, Scheduler scheduler, Logger logger, String token) {
@@ -109,11 +117,17 @@ public class DiscordBot extends ListenerAdapter {
         this.logger.info("Connecting to Discord…");
       } catch (Throwable throwable) {
         this.logger.error("Unable to start the Discord bot", throwable);
+        this.scheduleOfflineAlert(5_000L);
       }
     });
   }
 
   public void stop() {
+    ScheduledExecutorService monitor = this.alertMonitor;
+    this.alertMonitor = null;
+    if (monitor != null) {
+      monitor.shutdownNow();
+    }
     JDA current = this.jda;
     this.jda = null;
     if (current != null) {
@@ -122,6 +136,75 @@ public class DiscordBot extends ListenerAdapter {
       } catch (Throwable throwable) {
         this.logger.debug("Unable to shut the Discord bot down cleanly", throwable);
       }
+    }
+  }
+
+  private void startAlertMonitor() {
+    if (this.alertMonitor != null) {
+      return;
+    }
+    this.alertMonitor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+      Thread thread = new Thread(runnable, "discord-alert-monitor");
+      thread.setDaemon(true);
+      return thread;
+    });
+    this.alertMonitor.scheduleAtFixedRate(this::checkBotHealth, 60, 60, TimeUnit.SECONDS);
+  }
+
+  private void scheduleOfflineAlert(long delayMillis) {
+    ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
+      Thread thread = new Thread(runnable, "discord-alert-once");
+      thread.setDaemon(true);
+      return thread;
+    });
+    executor.schedule(() -> {
+      this.checkBotHealth();
+      executor.shutdown();
+    }, delayMillis, TimeUnit.MILLISECONDS);
+  }
+
+  private void checkBotHealth() {
+    if (this.isReady()) {
+      this.offlineSince = 0L;
+      if (this.offlineAlertSent) {
+        this.offlineAlertSent = false;
+        this.sendAdminAlert("✅ Discord bot is back online.");
+      }
+      return;
+    }
+    long now = System.currentTimeMillis();
+    if (this.offlineSince == 0L) {
+      this.offlineSince = now;
+    }
+    if (now - this.offlineSince < 120_000L || this.offlineAlertSent) {
+      return;
+    }
+    this.offlineAlertSent = true;
+    this.sendAdminAlert("⚠️ Discord bot has been offline for more than 2 minutes. Verification is unavailable.");
+  }
+
+  private void sendAdminAlert(String text) {
+    JDA current = this.jda;
+    List<String> admins = this.config.discord.adminUserIds;
+    if (admins == null || admins.isEmpty()) {
+      this.logger.warn("Bot offline alert could not be delivered: no adminUserIds configured. {}", text);
+      return;
+    }
+    for (String adminId : admins) {
+      if (adminId == null || adminId.isBlank()) {
+        continue;
+      }
+      if (current == null) {
+        this.logger.warn("Bot offline alert (no JDA): {}", text);
+        continue;
+      }
+      current.retrieveUserById(adminId).queue(
+          user -> user.openPrivateChannel().queue(
+              channel -> channel.sendMessage(text).queue(
+                  success -> this.logger.info("Admin alert sent to {}", adminId),
+                  error -> this.logger.warn("Unable to send admin alert to {}: {}", adminId, error.getMessage())),
+              error -> this.logger.warn("Unable to open DM for {}: {}", adminId, error.getMessage())),
+          error -> this.logger.warn("Unable to retrieve admin {}: {}", adminId, error.getMessage()));
     }
   }
 
@@ -178,6 +261,7 @@ public class DiscordBot extends ListenerAdapter {
           .addCommands(commands())
           .queue(list -> this.logger.info("Registered {} global slash command(s).", list.size()),
               error -> this.logger.error("Unable to register global slash commands", error));
+      this.startAlertMonitor();
       return;
     }
     Guild guild = this.jda.getGuildById(guildId);
@@ -189,6 +273,7 @@ public class DiscordBot extends ListenerAdapter {
         .addCommands(commands())
         .queue(list -> this.logger.info("Registered {} slash command(s) in guild {}.", list.size(), guild.getName()),
             error -> this.logger.error("Unable to register slash commands in guild {}", guildId, error));
+    this.startAlertMonitor();
   }
 
   // --------------------------------------------------------------- message guard
@@ -204,15 +289,22 @@ public class DiscordBot extends ListenerAdapter {
     if (event.getAuthor().isBot() || event.isWebhookMessage()) {
       return;
     }
-    if (!this.config.discord.commandsOnlyChannelIds.contains(event.getChannel().getId())) {
+    String channelId = event.getChannel().getId();
+    if (!this.config.discord.commandsOnlyChannelIds.contains(channelId)) {
       return;
     }
     event.getMessage().delete().queue(null,
         error -> this.logger.debug("Unable to delete a commands-only message: {}", error.getMessage()));
-    event.getChannel().sendMessage(
-            "❌ This channel is for commands only. Use `/verify`, `/account`, `/password` or `/unlink`.")
-        .queue(message -> message.delete().queueAfter(5, TimeUnit.SECONDS),
-            error -> this.logger.debug("Unable to send the commands-only notice: {}", error.getMessage()));
+    // Throttle the notice so a spammer cannot flood the channel (and the bot's rate limits).
+    long now = System.currentTimeMillis();
+    Long last = this.lastCommandsOnlyNotice.get(channelId);
+    if (last == null || now - last > 15_000L) {
+      this.lastCommandsOnlyNotice.put(channelId, now);
+      event.getChannel().sendMessage(
+              "❌ This channel is for commands only. Use `/verify`, `/account`, `/password` or `/unlink`.")
+          .queue(message -> message.delete().queueAfter(5, TimeUnit.SECONDS),
+              error -> this.logger.debug("Unable to send the commands-only notice: {}", error.getMessage()));
+    }
   }
 
   // --------------------------------------------------------------- slash commands
@@ -262,14 +354,14 @@ public class DiscordBot extends ListenerAdapter {
       AuthService.VerifyResult result = this.service.verify(code, userId, event.getUser().getName());
       if (!result.isSuccess()) {
         this.registerFailure(userId);
-        event.getHook().sendMessage(result.getMessage()).queue(null, error -> { });
+        event.getHook().sendMessage(result.getMessage()).queue(null, error -> this.logger.debug("Discord queue error: {}", error.getMessage()));
         return;
       }
       this.clearAttempts(userId);
       if (guild != null && member != null) {
         this.grantRole(guild, member);
       }
-      event.getHook().sendMessage(result.getMessage()).queue(null, error -> { });
+      event.getHook().sendMessage(result.getMessage()).queue(null, error -> this.logger.debug("Discord queue error: {}", error.getMessage()));
     });
   }
 
@@ -281,7 +373,7 @@ public class DiscordBot extends ListenerAdapter {
     String tag = event.getUser().getAsMention();
     event.deferReply(true).queue();
     this.scheduler.runAsync(() ->
-        event.getHook().sendMessage(this.service.accountInfo(userId, tag)).queue(null, error -> { }));
+        event.getHook().sendMessage(this.service.accountInfo(userId, tag)).queue(null, error -> this.logger.debug("Discord queue error: {}", error.getMessage())));
   }
 
   private void passwordModal(SlashCommandInteractionEvent event) {
@@ -423,7 +515,7 @@ public class DiscordBot extends ListenerAdapter {
     this.scheduler.runAsync(() -> {
       if (this.service.bans().find(null, name) != null) {
         event.getHook().sendMessage(Text.render(this.config.messages.discordBanAlready, this.config, name, "", 0))
-            .queue(null, error -> { });
+            .queue(null, error -> this.logger.debug("Discord queue error: {}", error.getMessage()));
         return;
       }
       BanStore.Ban ban = this.service.ban(name, finalDuration, reason, by);
@@ -434,7 +526,7 @@ public class DiscordBot extends ListenerAdapter {
           .replace("%reason%", reason)
           .replace("%duration%", DurationParser.human(finalDuration))
           .replace("%expires%", this.service.banExpiresText(ban));
-      event.getHook().sendMessage(message).queue(null, error -> { });
+      event.getHook().sendMessage(message).queue(null, error -> this.logger.debug("Discord queue error: {}", error.getMessage()));
     });
   }
 
@@ -452,7 +544,7 @@ public class DiscordBot extends ListenerAdapter {
       String message = removed
           ? Text.render(this.config.messages.discordUnbanDone, this.config, name, "", 0)
           : Text.render(this.config.messages.discordBanNotFound, this.config, name, "", 0);
-      event.getHook().sendMessage(message).queue(null, error -> { });
+      event.getHook().sendMessage(message).queue(null, error -> this.logger.debug("Discord queue error: {}", error.getMessage()));
     });
   }
 
@@ -472,7 +564,7 @@ public class DiscordBot extends ListenerAdapter {
       String message = kicked
           ? Text.render(this.config.messages.discordKicked, this.config, name, "", 0).replace("%reason%", reason)
           : Text.render(this.config.messages.discordKickOffline, this.config, name, "", 0);
-      event.getHook().sendMessage(message).queue(null, error -> { });
+      event.getHook().sendMessage(message).queue(null, error -> this.logger.debug("Discord queue error: {}", error.getMessage()));
     });
   }
 
@@ -485,7 +577,7 @@ public class DiscordBot extends ListenerAdapter {
       List<BanStore.Ban> bans = this.service.activeBans();
       if (bans.isEmpty()) {
         event.getHook().sendMessage(Text.render(this.config.messages.discordBanListEmpty, this.config, "", "", 0))
-            .queue(null, error -> { });
+            .queue(null, error -> this.logger.debug("Discord queue error: {}", error.getMessage()));
         return;
       }
       StringBuilder message = new StringBuilder(Text.render(
@@ -503,7 +595,7 @@ public class DiscordBot extends ListenerAdapter {
                 ? this.config.messages.discordReasonNone : ban.reason)
             .replace("%expires%", this.service.banExpiresText(ban)));
       }
-      event.getHook().sendMessage(message.toString()).queue(null, error -> { });
+      event.getHook().sendMessage(message.toString()).queue(null, error -> this.logger.debug("Discord queue error: {}", error.getMessage()));
     });
   }
 
@@ -540,19 +632,38 @@ public class DiscordBot extends ListenerAdapter {
     // payload: uuid|ip
     String[] parts = payload.split("\\|", 2);
     if (parts.length < 2) {
-      event.reply("❌ Невірні дані.").setEphemeral(true).queue();
+      event.reply("❌ Invalid data.").setEphemeral(true).queue();
       return;
     }
     String uuidStr = parts[0];
     String ip = parts[1];
+    java.util.UUID uuid;
+    try {
+      uuid = java.util.UUID.fromString(uuidStr);
+    } catch (IllegalArgumentException exception) {
+      event.reply("❌ Invalid data.").setEphemeral(true).queue();
+      return;
+    }
+    // Only the owner of the account that triggered the alert may block the IP.
+    boolean ownsAccount = false;
+    for (LinkStore.Link link : this.service.linksByDiscordId(event.getUser().getId())) {
+      java.util.UUID linkedUuid = this.service.uuidByName(link.name);
+      if (linkedUuid != null && linkedUuid.equals(uuid)) {
+        ownsAccount = true;
+        break;
+      }
+    }
+    if (!ownsAccount) {
+      event.reply("❌ You can only block IPs from your own login alerts.").setEphemeral(true).queue();
+      return;
+    }
     event.deferReply(true).queue();
     this.scheduler.runAsync(() -> {
       try {
-        java.util.UUID uuid = java.util.UUID.fromString(uuidStr);
         this.service.host().blockIpAndKick(ip, uuid);
-        event.getHook().sendMessage("✅ IP " + ip + " заблоковано. Гравця викинуто з сервера.").queue();
+        event.getHook().sendMessage("✅ IP " + ip + " blocked. Player kicked from the server.").queue();
       } catch (IllegalArgumentException e) {
-        event.getHook().sendMessage("❌ Невірний UUID.").queue();
+        event.getHook().sendMessage("❌ Invalid UUID.").queue();
       }
     });
   }
@@ -605,7 +716,7 @@ public class DiscordBot extends ListenerAdapter {
       if (result.isSuccess() && guild != null && member != null) {
         this.revokeRole(guild, member);
       }
-      event.getHook().sendMessage(result.getMessage()).queue(null, error -> { });
+      event.getHook().sendMessage(result.getMessage()).queue(null, error -> this.logger.debug("Discord queue error: {}", error.getMessage()));
     });
   }
 
@@ -621,7 +732,7 @@ public class DiscordBot extends ListenerAdapter {
     event.deferReply(true).queue();
     this.scheduler.runAsync(() -> {
       AuthService.VerifyResult result = this.service.resetPasswordFromDiscord(playerName, next, confirm);
-      event.getHook().sendMessage(result.getMessage()).queue(null, error -> { });
+      event.getHook().sendMessage(result.getMessage()).queue(null, error -> this.logger.debug("Discord queue error: {}", error.getMessage()));
     });
   }
 
@@ -631,7 +742,7 @@ public class DiscordBot extends ListenerAdapter {
     } else {
       this.registerFailure(userId);
     }
-    event.getHook().sendMessage(result.getMessage()).queue(null, error -> { });
+    event.getHook().sendMessage(result.getMessage()).queue(null, error -> this.logger.debug("Discord queue error: {}", error.getMessage()));
   }
 
   // -------------------------------------------------------------------- helpers
@@ -682,10 +793,10 @@ public class DiscordBot extends ListenerAdapter {
     }
     current.retrieveUserById(discordId).queue(user -> {
       String buttonId = BUTTON_BLOCK_IP + uuid + "|" + ip;
-      Button blockButton = Button.danger(buttonId, "❌ Це не я — заблокувати");
-      String message = "⚠️ **Новий вхід!**\n" +
-          "Гравець **" + playerName + "** зайшов на сервер з IP: `" + ip + "`\n" +
-          "Якщо це були не ви — натисніть кнопку нижче, щоб заблокувати IP і викинути гравця.";
+      Button blockButton = Button.danger(buttonId, "❌ This wasn't me — block");
+      String message = "⚠️ **New login!**\n" +
+          "Player **" + playerName + "** logged in from IP: `" + ip + "`\n" +
+          "If this wasn't you, click the button below to block the IP and kick the player.";
       user.openPrivateChannel().queue(channel ->
           channel.sendMessage(message).setActionRow(blockButton).queue(
               success -> this.logger.info("Login alert sent to Discord user {}", discordId),

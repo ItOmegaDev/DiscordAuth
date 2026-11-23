@@ -47,13 +47,13 @@ public final class PaperAuthListener implements Listener {
     // IP rate limiting
     if (this.host.isIpBlocked(ip)) {
       event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
-          net.kyori.adventure.text.Component.text("§cЗаблоковано. Ваш IP тимчасово заблокований через підозрілу активність."));
+          net.kyori.adventure.text.Component.text("§cBlocked. Your IP is temporarily blocked due to suspicious activity."));
       this.host.logger().warn("{} ({}) blocked — IP rate limit exceeded.", event.getName(), ip);
       return;
     }
     if (this.host.recordConnection(ip)) {
       event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
-          net.kyori.adventure.text.Component.text("§cЗаблоковано. Ваш IP тимчасово заблокований через підозрілу активність."));
+          net.kyori.adventure.text.Component.text("§cBlocked. Your IP is temporarily blocked due to suspicious activity."));
       this.host.logger().warn("{} ({}) blocked — too many connections from this IP.", event.getName(), ip);
       return;
     }

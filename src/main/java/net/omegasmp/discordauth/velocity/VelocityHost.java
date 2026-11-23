@@ -190,7 +190,7 @@ public class VelocityHost implements AuthHost {
     if (uuid != null) {
       // Kick the player if online
       this.server.getPlayer(uuid).ifPresent(player -> {
-        player.disconnect(Text.component("&c&lЗаблоковано\n&7Ваш акаунт було заблоковано через підозрілу активність."));
+        player.disconnect(Text.component("&c&lBlocked\n&7Your account was blocked due to suspicious activity."));
         this.logger.info("Kicked {} ({}) via Discord button.", player.getUsername(), uuid);
       });
       // Invalidate session

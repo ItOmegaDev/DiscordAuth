@@ -178,7 +178,7 @@ public final class PaperHost implements AuthHost {
     if (uuid != null) {
       Player player = org.bukkit.Bukkit.getPlayer(uuid);
       if (player != null && player.isOnline()) {
-        player.kick(net.kyori.adventure.text.Component.text("&c&lЗаблоковано\n&7Ваш акаунт було заблоковано через підозрілу активність."));
+        player.kick(net.kyori.adventure.text.Component.text("&c&lBlocked\n&7Your account was blocked due to suspicious activity."));
         this.logger.info("Kicked {} ({}) via Discord button.", player.getName(), uuid);
       }
       AuthSession session = this.sessions.byPlayer(uuid);
