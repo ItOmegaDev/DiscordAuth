@@ -53,11 +53,9 @@ public class VelocityLimboHandler implements LimboSessionHandler {
       this.showTitle(player, config.messages.title, config.messages.subtitle, name, code);
       this.showActionBar(player, config.messages.actionBar, name, code);
     }
-    if (this.session.needsPassword()) {
-      if (!this.session.needsDiscord()) {
-        // Password only: the code is irrelevant, so show a neutral title instead.
-        this.showTitle(player, config.messages.passwordTitle, config.messages.passwordSubtitle, name, code);
-      }
+    if (this.session.needsPassword() && !this.session.needsDiscord()) {
+      // Password step is shown only after Discord verification is done.
+      this.showTitle(player, config.messages.passwordTitle, config.messages.passwordSubtitle, name, code);
       this.send(this.host.service().passwordPrompt(this.session.getUuid()));
       this.showActionBar(player, config.messages.passwordActionBar, name, code);
     }

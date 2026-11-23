@@ -298,15 +298,15 @@ public class AuthService {
 
   /** Everything still pending — used for plain chat and unknown commands. */
   public Component hint(AuthSession session) {
-    Component result = null;
+    // Show only the step that is currently pending, so the Discord code and the
+    // registration/login prompt are never shown at the same time.
     if (session.needsDiscord()) {
-      result = this.discordPrompt(session);
+      return this.discordPrompt(session);
     }
     if (session.needsPassword()) {
-      Component prompt = this.passwordPrompt(session.getUuid());
-      result = result == null ? prompt : result.append(Component.newline()).append(prompt);
+      return this.passwordPrompt(session.getUuid());
     }
-    return result == null ? Text.build(this.config.messages.passwordHint, this.config, session) : result;
+    return Text.build(this.config.messages.passwordHint, this.config, session);
   }
 
   /** {@code /login <password>}; hashing runs off the main thread. */

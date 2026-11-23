@@ -639,11 +639,9 @@ public final class PaperHost implements AuthHost {
       this.showAuthTitle(player, this.config.messages.title, this.config.messages.subtitle, session);
       this.showAuthActionBar(player, this.config.messages.actionBar, session);
     }
-    if (session.needsPassword()) {
-      if (!session.needsDiscord()) {
-        this.showAuthTitle(player, this.config.messages.passwordTitle,
-            this.config.messages.passwordSubtitle, session);
-      }
+    if (session.needsPassword() && !session.needsDiscord()) {
+      this.showAuthTitle(player, this.config.messages.passwordTitle,
+          this.config.messages.passwordSubtitle, session);
       this.send(session, this.service.passwordPrompt(session.getUuid()));
       this.showAuthActionBar(player, this.config.messages.passwordActionBar, session);
     }
