@@ -83,7 +83,7 @@ discord:
   adminUserIds: []       # Discord user IDs with admin access
   inviteUrl: ""          # Discord invite link
   requireGuildMember: true
-  commandsOnlyChannelIds: []   # Channels where the bot deletes everything except slash commands
+  commandsOnlyChannelIds: []   # Bot deletes every human message here except slash commands (staff too)
   maxAccountsPerDiscord: 2
   maxJavaAccountsPerDiscord: 1
   maxBedrockAccountsPerDiscord: 1
@@ -184,7 +184,11 @@ discordToken: "YOUR_BOT_TOKEN"
 | `/password` | Change password |
 | `/unlink` | Unlink account |
 | `/password-reset <player>` | Admin: reset password |
-| `/ban`, `/tempban`, `/unban`, `/kick`, `/banlist` | Moderation |
+| `/ban`, `/tempban`, `/unban`, `/kick`, `/banlist` | Moderation (hidden from non-admins) |
+
+Staff commands are registered with `default_member_permissions = Administrator`, so a normal
+player's command picker only shows `/verify`, `/account`, `/password` and `/unlink`. Channel
+permission checks are still enforced server-side in `isAdmin()`.
 
 ---
 

@@ -17,6 +17,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -129,7 +130,13 @@ public class DiscordBot extends ListenerAdapter {
     return current != null && current.getStatus() == JDA.Status.CONNECTED;
   }
 
+  /**
+   * Slash commands registered in the guild. Player commands are visible to everyone; staff
+   * commands are hidden from members without Administrator, so the command picker of a normal
+   * player only lists /verify, /account, /password and /unlink.
+   */
   private static List<CommandData> commands() {
+    DefaultMemberPermissions staffOnly = DefaultMemberPermissions.enabledFor(Permission.ADMINISTRATOR);
     return List.of(
         Commands.slash("verify", "Link your Minecraft account")
             .addOption(OptionType.STRING, OPTION_CODE, "The code shown in Minecraft", true),
@@ -138,20 +145,26 @@ public class DiscordBot extends ListenerAdapter {
             .addOption(OptionType.STRING, OPTION_PLAYER, "Which linked account (needed if you have two)", false),
         Commands.slash("unlink", "Unlink your Minecraft account from Discord"),
         Commands.slash("password-reset", "Set a new password for a player (administrators)")
+            .setDefaultPermissions(staffOnly)
             .addOption(OptionType.STRING, OPTION_PLAYER, "Minecraft nickname", true),
         Commands.slash("ban", "Ban a player permanently (administrators)")
+            .setDefaultPermissions(staffOnly)
             .addOption(OptionType.STRING, OPTION_PLAYER, "Minecraft nickname", true)
             .addOption(OptionType.STRING, OPTION_REASON, "Reason", false),
         Commands.slash("tempban", "Ban a player for a period of time (administrators)")
+            .setDefaultPermissions(staffOnly)
             .addOption(OptionType.STRING, OPTION_PLAYER, "Minecraft nickname", true)
             .addOption(OptionType.STRING, OPTION_DURATION, "Duration, e.g. 30m, 12h, 7d, 2w", true)
             .addOption(OptionType.STRING, OPTION_REASON, "Reason", false),
         Commands.slash("unban", "Lift a ban (administrators)")
+            .setDefaultPermissions(staffOnly)
             .addOption(OptionType.STRING, OPTION_PLAYER, "Minecraft nickname", true),
         Commands.slash("kick", "Kick a player (administrators)")
+            .setDefaultPermissions(staffOnly)
             .addOption(OptionType.STRING, OPTION_PLAYER, "Minecraft nickname", true)
             .addOption(OptionType.STRING, OPTION_REASON, "Reason", false),
-        Commands.slash("banlist", "List active bans (administrators)"));
+        Commands.slash("banlist", "List active bans (administrators)")
+            .setDefaultPermissions(staffOnly));
   }
 
   @Override
@@ -181,7 +194,9 @@ public class DiscordBot extends ListenerAdapter {
   // --------------------------------------------------------------- message guard
 
   /**
-   * Deletes ordinary messages in channels configured as commands-only. Slash commands are
+   * Deletes ordinary messages in channels configured as commands-only, including messages written
+   * by staff and by the guild owner, so the channel really stays a command surface. Bots and
+   * webhooks are left alone (the bot itself posts the notice below). Slash commands are
    * interactions, not messages, so they are unaffected by this guard.
    */
   @Override
@@ -190,10 +205,6 @@ public class DiscordBot extends ListenerAdapter {
       return;
     }
     if (!this.config.discord.commandsOnlyChannelIds.contains(event.getChannel().getId())) {
-      return;
-    }
-    Member member = event.getMember();
-    if (member != null && member.hasPermission(Permission.MESSAGE_MANAGE)) {
       return;
     }
     event.getMessage().delete().queue(null,
