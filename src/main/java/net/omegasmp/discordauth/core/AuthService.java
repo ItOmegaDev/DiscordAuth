@@ -194,7 +194,11 @@ public class AuthService {
 
     boolean bedrock = this.host.isBedrockName(session.getUsername());
     LinkStore.Link existing = this.links.getLink(session.getUuid());
-    if (existing == null) {
+    // Admins (listed in discord.adminUserIds) are exempt from the per-Discord account limit,
+    // so the server owner can link as many accounts as needed.
+    boolean adminBypass = this.config.discord.adminUserIds != null
+        && this.config.discord.adminUserIds.contains(discordId);
+    if (existing == null && !adminBypass) {
       List<LinkStore.Link> linked = this.links.getLinksByDiscordId(discordId);
       int max = Math.max(1, this.config.discord.maxAccountsPerDiscord);
       if (linked.size() >= max) {
